@@ -1,6 +1,5 @@
 # Quiz Game
 
-## Description
 This is a quiz game for knowledge lovers which using api from [opendb.com].
 
 ## Contents
