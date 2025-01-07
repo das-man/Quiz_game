@@ -172,7 +172,7 @@ async function fetchQuestions(typeValue = "", difficultyValue = "", categoryValu
         // delay
         setTimeout(() => {
           removeAnswers();
-          fetchQuestions(typeValue, difficultyValue);
+          fetchQuestions(typeValue, difficultyValue, categoryValue);
         }, 1000);
       } else {
         answerBox.classList.add("wrong");
