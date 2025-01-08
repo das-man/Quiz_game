@@ -40,8 +40,6 @@ async function fetchQuestions({ typeValue, difficultyValue, catValue }) {
 
 // set words
 function setWords() {
-  console.log(array);
-  console.log(array[questionNum]);
   // show properties
   catWord.innerHTML = array[questionNum].category;
   diffWord.innerHTML = array[questionNum].difficulty;
