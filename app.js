@@ -45,9 +45,10 @@ function setWords() {
   diffWord.innerHTML = array[questionNum].difficulty;
   iWord.innerHTML = questionNum + 1 + " / 10";
   // change diffculty color
-  let diff = array[questionNum].diffculty;
+  let diff = array[questionNum].difficulty;
+
   if (diff === "easy") {
-    diffWord.style.backgroundColor = "#ffc107";
+    diffWord.style.backgroundColor = "#EE82EE";
   } else if (diff === "medium") {
     diffWord.style.backgroundColor = "green";
   } else if (diff === "hard") {
