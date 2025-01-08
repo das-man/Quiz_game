@@ -4,159 +4,64 @@ const questionWord = document.querySelector(".question");
 const answerWord = document.querySelector(".answer");
 const diffWord = document.querySelector("#difficultyProp");
 const catWord = document.querySelector("#catProp");
+const iWord = document.querySelector("#indexProp");
 const correctAnswer = new Audio("sound/correct.mp3");
 const wrongAnswer = new Audio("sound/wrong.mp3");
+let questionNum = 0;
+let array = [];
+let score = 0;
 
-fetchQuestions();
+start();
 
+async function start() {
+  array = await fetchQuestions(getValues());
+  setWords();
+}
+
+// submit button do
 click.addEventListener("click", (e) => {
   e.preventDefault();
   removeAnswers();
-  // get values
-  let typeValue = document.querySelector("#type").value;
-  switch (typeValue) {
-    case "MC":
-      typeValue = "&type=multiple";
-      break;
-    case "T/F":
-      typeValue = "&type=boolean";
-      break;
-    default:
-      typeValue = "";
-      break;
-  }
-
-  let difficultyValue = document.querySelector("#difficulty").value;
-  console.log(difficultyValue);
-  switch (difficultyValue) {
-    case "ez":
-      difficultyValue = "&difficulty=easy";
-      break;
-    case "medium":
-      difficultyValue = "&difficulty=medium";
-      diffWord.style.backgroundColor = "green";
-      break;
-    case "hard":
-      difficultyValue = "&difficulty=hard";
-      diffWord.style.backgroundColor = "red";
-      break;
-    default:
-      difficultyValue = "";
-      break;
-  }
-
-  let catValue = document.querySelector("#category").value;
-  switch (catValue) {
-    case "9":
-        categoryValue = "&category=9"; // General Knowledge
-        break;
-    case "10":
-        categoryValue = "&category=10"; // Entertainment: Books
-        break;
-    case "11":
-        categoryValue = "&category=11"; // Entertainment: Film
-        break;
-    case "12":
-        categoryValue = "&category=12"; // Entertainment: Music
-        break;
-    case "13":
-        categoryValue = "&category=13"; // Entertainment: Musicals & Theatres
-        break;
-    case "14":
-        categoryValue = "&category=14"; // Entertainment: Television
-        break;
-    case "15":
-        categoryValue = "&category=15"; // Entertainment: Video Games
-        break;
-    case "16":
-        categoryValue = "&category=16"; // Entertainment: Board Games
-        break;
-    case "17":
-        categoryValue = "&category=17"; // Science & Nature
-        break;
-    case "18":
-        categoryValue = "&category=18"; // Science: Computers
-        break;
-    case "19":
-        categoryValue = "&category=19"; // Science: Mathematics
-        break;
-    case "20":
-        categoryValue = "&category=20"; // Mythology
-        break;
-    case "21":
-        categoryValue = "&category=21"; // Sports
-        break;
-    case "22":
-        categoryValue = "&category=22"; // Geography
-        break;
-    case "23":
-        categoryValue = "&category=23"; // History
-        break;
-    case "24":
-        categoryValue = "&category=24"; // Politics
-        break;
-    case "25":
-        categoryValue = "&category=25"; // Art
-        break;
-    case "26":
-        categoryValue = "&category=26"; // Celebrities
-        break;
-    case "27":
-        categoryValue = "&category=27"; // Animals
-        break;
-    case "28":
-        categoryValue = "&category=28"; // Vehicles
-        break;
-    case "29":
-        categoryValue = "&category=29"; // Entertainment: Comics
-        break;
-    case "30":
-        categoryValue = "&category=30"; // Science: Gadgets
-        break;
-    case "31":
-        categoryValue = "&category=31"; // Entertainment: Japanese Anime & Manga
-        break;
-    case "32":
-        categoryValue = "&category=32"; // Entertainment: Cartoon & Animations
-        break;
-    default:
-        categoryValue = "";
-}
-
-  fetchQuestions(typeValue, difficultyValue, categoryValue).catch(() => {
-    alert("please wait for a moment and try again");
-  });
+  questionNum = 0;
+  score = 0;
+  start();
 });
 
-async function fetchQuestions(typeValue = "", difficultyValue = "", categoryValue = "") {
+// fetching questions
+async function fetchQuestions({ typeValue, difficultyValue, catValue }) {
   const res = await fetch(
-    `https://opentdb.com/api.php?amount=1${typeValue}${difficultyValue}${categoryValue}`
+    `https://opentdb.com/api.php?amount=10${typeValue}${difficultyValue}${catValue}`
   );
   const data = await res.json();
-  let fetchedQuestions = data.results[0];
+  let fetchedQuestions = data.results;
 
+  return fetchedQuestions;
+}
+
+// set words
+function setWords() {
+  console.log(array);
+  console.log(array[questionNum]);
+  // show properties
+  catWord.innerHTML = array[questionNum].category;
+  diffWord.innerHTML = array[questionNum].difficulty;
+  iWord.innerHTML = questionNum + 1 + " / 10";
   // change diffculty color
-  if (fetchedQuestions.difficulty === "easy") {
+  let diff = array[questionNum].diffculty;
+  if (diff === "easy") {
     diffWord.style.backgroundColor = "#ffc107";
-  } else if (fetchedQuestions.difficulty === "medium") {
+  } else if (diff === "medium") {
     diffWord.style.backgroundColor = "green";
-  } else if (fetchedQuestions.difficulty === "hard") {
+  } else if (diff === "hard") {
     diffWord.style.backgroundColor = "#dc3545";
   }
-
-  // show properties
-  diffWord.innerHTML = fetchedQuestions.difficulty;
-  catWord.innerHTML = fetchedQuestions.category;
-
   // show question
-  questionWord.innerHTML = fetchedQuestions.question;
-
-  // loop through answers
-  let answers = fetchedQuestions.incorrect_answers;
-  answers.push(fetchedQuestions.correct_answer);
-
+  questionWord.innerHTML = array[questionNum].question;
+  // get, shuffle
+  let answers = array[questionNum].incorrect_answers;
+  answers.push(array[questionNum].correct_answer);
   shuffleArray(answers);
-
+  // show answers
   answers.forEach((answer) => {
     let answerBox = document.createElement("span");
     answerBox.classList.add("answerBox");
@@ -164,22 +69,54 @@ async function fetchQuestions(typeValue = "", difficultyValue = "", categoryValu
     answerWord.appendChild(answerBox);
     main.appendChild(questionWord);
     main.appendChild(answerWord);
+  });
 
-    answerBox.addEventListener("click", () => {
-      if (answerBox.innerHTML === fetchedQuestions.correct_answer) {
+  const answerBoxes = document.querySelectorAll(".answerBox");
+  answerBoxes.forEach((answerBox) => {
+    answerBox.addEventListener("click", (e) => {
+      nextQuestion();
+      // correct
+      if (e.target.innerHTML === array[questionNum].correct_answer) {
         answerBox.classList.add("correct");
         correctAnswer.play();
-        // delay
-        setTimeout(() => {
-          removeAnswers();
-          fetchQuestions(typeValue, difficultyValue, categoryValue);
-        }, 1000);
+        score += 10;
       } else {
+        // wrong answer
         answerBox.classList.add("wrong");
         wrongAnswer.play();
+        // check correct answer
+        answerBoxes.forEach((answerBox) => {
+          if (answerBox.innerHTML === array[questionNum].correct_answer) {
+            answerBox.classList.add("correct");
+          }
+        });
       }
     });
   });
+}
+
+// next question
+function nextQuestion() {
+  if (questionNum < 9) {
+    setTimeout(() => {
+      questionNum++;
+      removeAnswers();
+      setWords();
+    }, 1000);
+  } else {
+    setTimeout(() => {
+      alert("GG! 🎉 You scored " + score + " / 100");
+    }, 1000);
+  }
+}
+
+// get dropdown values
+function getValues() {
+  let typeValue = document.querySelector("#type").value;
+  let difficultyValue = document.querySelector("#difficulty").value;
+  let catValue = document.querySelector("#category").value;
+
+  return { typeValue, difficultyValue, catValue };
 }
 
 // remove ans
@@ -193,8 +130,8 @@ function removeAnswers() {
 // shuffle
 function shuffleArray(array) {
   for (let i = array.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [array[i], array[j]] = [array[j], array[i]];
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
   }
   return array;
 }
